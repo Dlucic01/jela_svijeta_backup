@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 namespace Core;
@@ -7,73 +8,58 @@ require_once "db.php";
 use Faker;
 
 
-
-class Category
+class ValidInput
 {
+    public static array $error;
 
-    protected $db;
-    protected $upload;
-
-    public function __construct(DBConnInterface $db, Upload $upload)
+    public static function validateValues(): bool
     {
-        $this->db = $db;
-        $this->upload = $upload;
-    }
+        global $argc;
+        global $argv;
+
+        $validTables = [
+            'meals',
+            'tags',
+            'ingredients',
+            'category',
+            'meals_category',
+            'meals_tags',
+            'meals_ingredients'
+        ];
+
+        $tableCount = count($validTables);
+
+        if ($argc == 1) {
+            echo self::$error[] = "Usage: ./upload |table_name|" . PHP_EOL;
+            return false;
+        }
+
+        if ($argc <= 1) {
+            echo self::$error[] = "ERROR!!! Too few arguments." . PHP_EOL; // !!! NADOPUNITI !!! //
+            return false;
+        }
 
 
-    function insertCategory()
-    {
+        if ($argc >= 4) {
+            echo self::$error[] = "ERROR!!! Too few arguments." . PHP_EOL; // !!! NADOPUNITI !!! //
+            return false;
+        }
 
-        #$db = new SQLConnection;
-        #$user = new Upload($db);
-
-
-        $lang_counter = count(Lang::$faker_lang);
-
-
-
-
-
-        for ($i = 0; $i < $lang_counter; $i++) {
-            $faker_lang = Lang::$faker_lang[$i];
-            $faker = Faker\Factory::create($faker_lang);
-
-            //Generate Faker Titles
-            $faker_category = $faker->streetName;
-
-            $faker_cat[] = $faker_category;
-
-            $faker_val = [
-                0 => $faker_cat,
-            ];
-
-
-            // Generate Faker Slugs
-            if ($i == 0) {
-                $slug = [
-                    0 => Upload::slugMaker($faker_cat[0]),
-
-                ];
+        for ($i = 0; $i < $tableCount; $i++) {
+            if (!in_array($argv[1], $validTables)) {
+                echo self::$error[] = "ERROR!!! Table you provided does not exist";
+                return false;
             }
         }
 
-        # $faker = Faker\Factory::create($faker_lang[$k]);
-        for ($j = 0; $j < $lang_counter; $j++) {
-
-            $this->upload->insert(array(
-                "table" => Table::$value[0][$j],
-
-                "column" => CTI::$value,
-                "param" => $faker_val[0][$j],
-                "slug" => $slug[0]
-            ));
+        if (empty(self::$error)) {
+            return true;
         }
     }
 }
 
 
-
-class Tags
+class CTIInsert
 {
     protected $db;
     protected $upload;
@@ -85,244 +71,212 @@ class Tags
     }
 
 
-    function insertTags()
+    function insertCategory(array $params)
     {
+        if (ValidInput::validateValues() == true) {
+            $lang_counter = count(Lang::$fakerLang);
+            $table_name = $params[1];
 
-        #$db = new SQLConnection;
-        #$user = new Upload($db);
+            for ($i = 0; $i < $lang_counter; $i++) {
+                $fakerLang = Lang::$fakerLang[$i];
+                $faker = Faker\Factory::create($fakerLang);
 
+                //Generate Faker Titles
+                if ($table_name == "category") {
+                    $faker_category = $faker->streetName;
+                }
+                if ($table_name == "tags") {
+                    $faker_category = $faker->company;
+                }
 
-        $lang_counter = count(Lang::$faker_lang);
-
-
-
-
-
-        for ($k = 0; $k < $lang_counter; $k++) {
-            $faker_lang = Lang::$faker_lang[$k];
-            $faker = Faker\Factory::create($faker_lang);
-
-            //Generate Faker Titles
-            $faker_tags = $faker->company;
-
-            $faker_tag[] = $faker_tags;
-
-            $faker_val = [
-                0 => $faker_tag,
-            ];
+                if ($table_name == "ingredients") {
+                    $faker_category = $faker->name;
+                }
 
 
-            // Generate Faker Slugs
-            if ($k == 0) {
-                $slug = [
-                    0 => Upload::slugMaker($faker_tag[0]),
+                $faker_cat[] = $faker_category;
 
-                ];
+                echo "!!!!!!!!!!!!!!!!!!!!\n";
+                echo ("<pre>" . print_r($faker_category, true) . "</pre>");
+
+                echo "!!!!!!!!!!!!!!!!!!!!\n";
+
+
+                echo "-----------------------\n";
+                echo ("<pre>" . print_r($faker_cat, true) . "</pre>");
+
+                echo "-----------------------\n";
+
+                // Generate Faker Slugs
+                if ($i == 0) {
+                    $slug = [
+                        0 => Upload::slugMaker($faker_cat[0]),
+
+                    ];
+                }
             }
-        }
 
-        # $faker = Faker\Factory::create($faker_lang[$k]);
-        for ($j = 0; $j < $lang_counter; $j++) {
 
-            $this->upload->insert(array(
-                "table" => Table::$value[1][$j],
 
-                "column" => CTI::$value,
-                "param" => $faker_val[0][$j],
-                "slug" => $slug[0]
-            ));
+
+            # $faker = Faker\Factory::create($fakerLang[$k]);
+            for ($j = 0; $j < $lang_counter; $j++) {
+
+                $this->upload->insert(array(
+                    "table" => Table::$value[$table_name][$j],
+
+                    "column" => CTI::$value,
+                    "param" => $faker_cat[$j],
+                    "slug" => $slug[0]
+                ));
+            }
         }
     }
 }
-
-class Ingredients
-{
-    protected $db;
-    protected $upload;
-
-    public function __construct(DBConnInterface $db, Upload $upload)
-    {
-        $this->db = $db;
-        $this->upload = $upload;
-    }
-
-
-    function insertIngredients()
-    {
-
-
-
-        $lang_counter = count(Lang::$faker_lang);
-
-
-
-
-        for ($k = 0; $k < $lang_counter; $k++) {
-            $faker_lang = Lang::$faker_lang[$k];
-            $faker = Faker\Factory::create($faker_lang);
-
-            //Generate Faker Titles
-            $faker_tags = $faker->name;
-
-            $faker_tag[] = $faker_tags;
-
-            $faker_val = [
-                0 => $faker_tag,
-            ];
-
-
-            // Generate Faker Slugs
-            if ($k == 0) {
-                $slug = [
-                    0 => Upload::slugMaker($faker_tag[0]),
-
-                ];
-            }
-        }
-
-        # $faker = Faker\Factory::create($faker_lang[$k]);
-        for ($j = 0; $j < $lang_counter; $j++) {
-
-            $this->upload->insert(array(
-                "table" => Table::$value[2][$j],
-
-                "column" => CTI::$value,
-                "param" => $faker_val[0][$j],
-                "slug" => $slug[0]
-            ));
-        }
-    }
-}
-
 
 class Meals
 {
     protected $db;
     protected $upload;
+    protected $select_category;
 
-    public function __construct(DBConnInterface $db, Upload $upload)
+    public function __construct(DBConnInterface $db, Upload $upload) //, CTISelect $select_category)
     {
         $this->db = $db;
         $this->upload = $upload;
+        #$this->select_category = $select_category;
     }
 
 
     function insertMeals()
     {
+        if (ValidInput::validateValues() == true) {
 
-        // Random Category
-        $random_cat = rand(0, 1);
 
-        if ($random_cat == 0) {
-            $meal_category = "null";
+            $lang_counter = count(Lang::$fakerLang);
+
+
+            for ($i = 0; $i < $lang_counter; $i++) {
+                $fakerLang = Lang::$fakerLang[$i];
+                $faker = Faker\Factory::create($fakerLang);
+                $meal_title = $faker->lastName;
+                $meal_tit[] = $meal_title;
+            }
+
+            for ($j = 0; $j < $lang_counter; $j++) {
+                $fakerLang = Lang::$fakerLang[$j];
+                $faker = Faker\Factory::create($fakerLang);
+                $meal_desc = $faker->country;
+                $meal_des[] = $meal_desc;
+            }
+
+
+
+            $meal_values = [
+                0 => $meal_tit,
+                1 => $meal_des,
+            ];
+
+            for ($j = 0; $j < $lang_counter; $j++) {
+                $this->upload->insert(array(
+
+                    "table" => Table::$value["meals"][$j],
+                    "column" => MealColumns::$value,
+                    "param" => $meal_values[0][$j],
+                    "description" => $meal_values[1][$j]
+                ));
+            }
         }
-        if ($random_cat == 1) {
-            $meal_category = "Category";
-        }
-
-        $random_ing = rand(0, 1);
-        if ($random_ing == 0) {
-            $meal_ingredients = "null";
-        }
-        if ($random_ing == 1) {
-            $meal_ingredients = "Ingredient";
-        }
-
-        $random_tag = rand(0, 1);
-        if ($random_tag == 0) {
-            $meal_tags = "null";
-        }
-        if ($random_tag == 1) {
-            $meal_tags = "Tag";
-        }
-        $lang_counter = count(Lang::$faker_lang);
+    }
+}
 
 
-        for ($i = 0; $i < $lang_counter; $i++) {
-            $faker_lang = Lang::$faker_lang[$i];
-            $faker = Faker\Factory::create($faker_lang);
-            $meal_title = $faker->lastName;
-            $meal_tit[] = $meal_title;
-        }
+class InsertJoin
+{
+    protected $dbConnInterface;
+    protected $upload;
 
-        for ($j = 0; $j < $lang_counter; $j++) {
-            $faker_lang = Lang::$faker_lang[$j];
-            $faker = Faker\Factory::create($faker_lang);
-            $meal_desc = $faker->country;
-            $meal_des[] = $meal_desc;
-        }
+    public function __construct(DBConnInterface $dBConnInterface, Upload $upload)
+    {
+        $this->dbConnInterface = $dBConnInterface;
+        $this->upload = $upload;
+    }
 
-
-
-        $meal_values = [
-            0 => $meal_tit,
-            1 => $meal_des,
-            2 => $meal_category,
-            3 => $meal_ingredients,
-            4 => $meal_tags
+    public function insertValues(array $params)
+    {
+        $table = $params[2];
+        $idValues = [
+            0 => $params[3],
+            1 => $params[4]
         ];
 
-        for ($j = 0; $j < $lang_counter; $j++) {
+        $dbTable = Table::$value['joins'];
+        $upload = $this->upload;
 
-            $this->upload->insert(array(
-                "table" => Table::$value[3][$j],
+        switch ($table) {
+            case "meals_category":
+                $upload->insert([
+                    "table" => $dbTable[0],
+
+                    "column" => JoinColumns::$category,
+                    "param" => $idValues[0],
+                    "cti_id" => $idValues[1]
+
+                ]);
+                break;
+
+            case "meals_tags":
+                $upload->insert([
+                    "table" => $dbTable[1],
+                    "column" => JoinColumns::$tags,
+                    "param" => $idValues[0],
+                    "cti_id" => $idValues[1]
 
 
-                "column" => MealColumns::$value,
-                "param" => $meal_values[0][$j],               // #[$j][$j]
-                "title" => $meal_values[0][$j],
-                "description" => $meal_values[1][$j],
-                "category" => $meal_values[2],
-                "tags" => $meal_values[3],
-                "ingredients" => $meal_values[4]
-            ));
-            #   }
+                ]);
+                break;
+
+            case "meals_ingredients":
+                $upload->insert([
+                    "table" => $dbTable[2],
+                    "column" => JoinColumns::$ingredients,
+                    "param" => $idValues[0],
+                    "cti_id" => $idValues[1]
+                ]);
+                break;
+
+            default:
+                echo "Provide a valid table name" . PHP_EOL;
         }
-        #        echo "------------------------\n";
-        #        echo ("<pre>" . print_r($meal_tit, true) . "</pre>");
-        #        echo "------------------------\n";
-        #        echo "!!!!!!!!!!!!!!!!!!!!!!!!\n";
-        #        echo ("<pre>" . print_r($meal_values, true) . "</pre>");
-        #        echo "!!!!!!!!!!!!!!!!!!!!!!!!\n";
-        #        echo "????????????????????????\n";
-        #        echo ("<pre>" . print_r($meal_des, true) . "</pre>");
-        #        echo "????????????????????????\n";
-
-        #for ($j = 0; $j < $lang_counter; $j++) {
-
-        #   $this->upload->insert(array(
-        #      "table" => Table::$value[2][$j],
-
-        # ));
-        #}
     }
 }
 
 
 
-
-
-if (isset($argc) && $argc < 3 && $argc > 1) {
+if (isset($argc)) {
     $sql_conn = new SQLConnection;
     $upload_v = new Upload($sql_conn);
 
+
     if ($argv[1] == "category") {
-        $cti_v = new Category($sql_conn, $upload_v);
-        $cti_v->insertCategory();
+        $cti_v = new CTIInsert($sql_conn, $upload_v);
+        $cti_v->insertCategory($argv);
     }
-
     if ($argv[1] == "tags") {
-        $cti_v = new Tags($sql_conn, $upload_v);
-        $cti_v->insertTags();
+        $cti_v = new CTIInsert($sql_conn, $upload_v);
+        $cti_v->insertCategory($argv);
     }
-
     if ($argv[1] == "ingredients") {
-        $cti_v = new Ingredients($sql_conn, $upload_v);
-        $cti_v->insertIngredients();
+        $cti_v = new CTIInsert($sql_conn, $upload_v);
+        $cti_v->insertCategory($argv);
     }
-    if ($argv[1] == "meal") {
+    if ($argv[1] == "meals") {
         $cti_v = new Meals($sql_conn, $upload_v);
         $cti_v->insertMeals();
+    }
+    if ($argv[1] == "join") {
+        $cti_v = new InsertJoin($sql_conn, $upload_v);
+        $cti_v->insertValues($argv);
     }
 } else {
     echo "ERROR!!! Invalide number of arguments. Expected 1 argument named (category, tags, ingredients, meals)\n\n";

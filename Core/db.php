@@ -2,17 +2,15 @@
 
 namespace Core;
 
-use Faker;
 use PDO;
 use PDOException;
-use PDOStatement;
 
 //namespace DB
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once '../vendor/autoload.php';
+require '/srv/www/apache/vendor/autoload.php';
 
 interface DBConnInterface
 {
@@ -42,10 +40,11 @@ class SQLConnection implements DBConnInterface
 class Table
 {
     public static $value = [
-        0 => ['jela_svijeta.category', 'jela_svijeta.category_eng', 'jela_svijeta.category_fr'],
-        1 => ['jela_svijeta.tags', 'jela_svijeta.tags_eng', 'jela_svijeta.tags_fr'],
-        2 => ['jela_svijeta.ingredients', 'jela_svijeta.ingredients_eng', 'jela_svijeta.ingredients_fr'],
-        3 => ['jela_svijeta.meals', 'jela_svijeta.meals_eng', 'jela_svijeta.meals_fr']
+        "category" => ['jela_svijeta.category_hr', 'jela_svijeta.category_eng', 'jela_svijeta.category_fr'],
+        "tags" => ['jela_svijeta.tags_hr', 'jela_svijeta.tags_eng', 'jela_svijeta.tags_fr'],
+        "ingredients" => ['jela_svijeta.ingredients_hr', 'jela_svijeta.ingredients_eng', 'jela_svijeta.ingredients_fr'],
+        "meals" => ['jela_svijeta.meals_hr', 'jela_svijeta.meals_eng', 'jela_svijeta.meals_fr'],
+        "joins" => ['jela_svijeta.meals_category', 'jela_svijeta.meals_tags', 'jela_svijeta.meals_ingredients']
     ];
 }
 
@@ -57,13 +56,27 @@ class MealColumns
     public static $value = [
         0 => "title",
         1 => "description",
-        2 => "category",
-        3 => "ingredients",
-        4 => "tags"
     ];
 }
 
 
+class JoinColumns
+{
+    public static $category = [
+        0 => "meals_id",
+        1 => "category_id",
+    ];
+
+    public static $tags = [
+        0 => "meals_id",
+        1 => "tags_id",
+    ];
+
+    public static $ingredients = [
+        0 => "meals_id",
+        1 => "ingredients_id",
+    ];
+}
 
 class Languages
 {
@@ -81,7 +94,7 @@ class CTI
 
 class Lang
 {
-    public static $faker_lang = [
+    public static $fakerLang = [
         0 => "hr_HR",
         1 => "eng_US",
         2 => "fr_FR"
@@ -134,7 +147,7 @@ class Upload
         $sql .= ")";
 
 
-        echo $sql;
+        echo $sql . "\n\n\n";
 
         $stmt = $pdo->prepare($sql);
         // insert  CTIinto sql
@@ -145,38 +158,50 @@ class Upload
                 $params["param"] = $params["slug"];
             }
 
-            // Upitnik - Potencijalno greška (ISP)
-            # if ($column_value == "title") { //   && $column_count > 3
-            #     $params["param"] = $params["title"];  #:welf::slugMaker($params["param"]);
-            # }
-
-
             if ($column_value == "description") {
                 $params["param"] = $params["description"];  #self::slugMaker($params["param"]);
             }
-            if ($column_value == "category") {
-                $params["param"] = $params["category"];  #self::slugMaker($params["param"]);
+            if ($column_value == "category_id") {
+                $params["param"] = $params["cti_id"];  #self::slugMaker($params["param"]);
             }
-            if ($column_value == "ingredients") {
-                $params["param"] = $params["ingredients"];  #self::slugMaker($params["param"]);
+            if ($column_value == "tags_id") {
+                $params["param"] = $params["cti_id"];  #self::slugMaker($params["param"]);
             }
-            if ($column_value == "tags") {
-                $params["param"] = $params["tags"];  #self::slugMaker($params["param"]);
+            if ($column_value == "ingredients_id") {
+                $params["param"] = $params["cti_id"];  #self::slugMaker($params["param"]);
             }
+
 
 
             $stmt->bindValue($column_value, $params["param"]);
         }
         $stmt->execute();
         $pdo = null;
-
-
-
-        #            if ($column_value == "slug") {
-        #                $params["param"] = self::slugMaker($params["param"]);
-        #            }
-        #
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #            if ($column_value == "slug") {
+    #                $params["param"] = self::slugMaker($params["param"]);
+    #            }
+    #
+
 
 
     /*public function insertM(array $params)
@@ -246,7 +271,7 @@ class Upload
         #
     }
     */
-}
+
 
 
 
